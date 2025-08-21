@@ -1,66 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function Feedback() {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
+  const [hasReviewed, setHasReviewed] = useState(false);
+  const [review, setReview] = useState(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('userReview');
+    if (stored) {
+      setHasReviewed(true);
+      setReview(JSON.parse(stored));
+    }
+  }, []);
+
+  const submit = e => {
+    e.preventDefault();
+    if (rating === 0) return alert('Selecione uma avaliação');
+    const rev = { rating, comment, date: new Date().toLocaleDateString('pt-BR') };
+    localStorage.setItem('userReview', JSON.stringify(rev));
+    setReview(rev);
+    setHasReviewed(true);
+    alert('Avaliação enviada!');
+  };
 
   return (
-    <div style={containerStyle}>
-      <h2 style={titleStyle}>Deixe seu Feedback</h2>
-      <div style={starsStyle}>
-        {[1, 2, 3, 4, 5].map(star => (
-          <span 
-            key={star}
-            onClick={() => setRating(star)}
-            style={{...starStyle, color: star <= rating ? 'var(--accent-color)' : '#ccc'}}
-          >
-            ★
-          </span>
-        ))}
-      </div>
-      <textarea 
-        placeholder="Conte sua experiência..."
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        style={textareaStyle}
-      />
-      <button className="btn btn-primary">Enviar Feedback</button>
+    <div style={{ maxWidth: '500px', margin: '40px auto', padding: '20px', backgroundColor: 'white', borderRadius: 'var(--border-radius)', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+      <h2 style={{ textAlign: 'center', color: 'var(--primary-color)' }}>Feedback</h2>
+      {hasReviewed ? (
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '24px', color: 'var(--accent-color)' }}>
+            {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+          </div>
+          <p style={{ fontStyle: 'italic', margin: '20px 0' }}>"{review.comment}"</p>
+          <small>Enviado em {review.date}</small>
+          <br />
+          <button disabled style={{ marginTop: '20px', padding: '10px 20px', backgroundColor: '#ccc', border: 'none', borderRadius: 'var(--border-radius)' }}>
+            Review já enviado
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={submit}>
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            {[1,2,3,4,5].map(n => (
+              <span key={n} onClick={() => setRating(n)} style={{ fontSize: '30px', color: n <= rating ? 'var(--accent-color)' : '#ccc', cursor: 'pointer' }}>
+                ★
+              </span>
+            ))}
+          </div>
+          <textarea
+            placeholder="Conte sua experiência..."
+            value={comment}
+            onChange={e => setComment(e.target.value)}
+            required
+            style={{ width: '100%', padding: '10px', borderRadius: 'var(--border-radius)', border: `1px solid var(--light-gray)`, marginBottom: '20px' }}
+          />
+          <button type="submit" style={{ backgroundColor: 'var(--primary-color)', color: 'white', border: 'none', padding: '12px', borderRadius: 'var(--border-radius)', width: '100%' }}>
+            Enviar Feedback
+          </button>
+        </form>
+      )}
     </div>
   );
 }
-
-const containerStyle = {
-  maxWidth: '600px',
-  margin: '40px auto',
-  padding: '30px',
-  backgroundColor: 'white',
-  borderRadius: 'var(--border-radius)',
-  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-};
-
-const titleStyle = {
-  color: 'var(--primary-color)',
-  marginBottom: '20px'
-};
-
-const starsStyle = {
-  fontSize: '40px',
-  marginBottom: '20px'
-};
-
-const starStyle = {
-  cursor: 'pointer',
-  transition: 'color 0.2s'
-};
-
-const textareaStyle = {
-  width: '100%',
-  minHeight: '150px',
-  padding: '15px',
-  border: '1px solid var(--light-gray)',
-  borderRadius: 'var(--border-radius)',
-  marginBottom: '20px',
-  fontSize: '16px'
-};
 
 export default Feedback;
